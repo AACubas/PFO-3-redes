@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Análisis de Texto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Enviar texto para análisis</h1>
+    <textarea id="texto" placeholder="Escribe algo..." rows="5"></textarea>
+    <button onclick="enviar()">Analizar</button>
+
+    <h2>Resultados</h2>
+    <ul id="results"></ul>
+
+    <button onclick="logout()">Cerrar sesión</button>
+
+    <script>
+        async function enviar() {
+            const texto = document.getElementById("texto").value.trim();
+            if (!texto) return;
+            await fetch("/analyze", {
+                method: "POST",
+                body: new URLSearchParams({texto})
+            });
+            document.getElementById("texto").value = "";
+            cargarResultados();
+        }
+
+        async function cargarResultados() {
+            const res = await fetch("/results");
+            const data = await res.json();
+            const list = document.getElementById("results");
+            list.innerHTML = "";
+            data.forEach(r => {
+                const li = document.createElement("li");
+                li.innerHTML = `<b>${r.texto}</b><br>Estado: ${r.estado}<br>Resultado: ${r.resultado || "Procesando..."}`;
+                list.appendChild(li);
+            });
+        }
+
+        setInterval(cargarResultados, 3000);
+        cargarResultados();
+
+        function logout() {
+            window.location.href = "/logout";
+        }
+    </script>
+</body>
+</html>
